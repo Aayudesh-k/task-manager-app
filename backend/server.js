@@ -11,8 +11,14 @@ const MONGO_URI = process.env.MONGO_URI;
 
 const tasksRoute = require('./routes/tasks');
 
+// Configure CORS to allow requests from your Vercel frontend
+const corsOptions = {
+  origin: 'https://task-manager-k1ujhgn2q-aayudesh-kaparthis-projects.vercel.app',
+  optionsSuccessStatus: 200 // Some legacy browsers (IE11, various SmartTVs) choke on 204
+};
+app.use(cors(corsOptions));
+
 // Middleware
-app.use(cors());
 app.use(express.json());
 
 // Connect to MongoDB
