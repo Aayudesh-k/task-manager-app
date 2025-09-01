@@ -1,51 +1,65 @@
-const router = require('express').Router();
+const express = require('express');
+const router = express.Router();
 const Task = require('../models/Task');
 
-// Get all tasks, sorted by due date
+// GET all tasks
 router.get('/', async (req, res) => {
   try {
-    const tasks = await Task.find().sort({ dueDate: 1 });
-    res.status(200).json(tasks);
+    const tasks = await Task.find();
+    res.json(tasks);
   } catch (err) {
-    res.status(500).json(err);
+    res.status(500).json({ message: err.message });
   }
 });
 
-// Create a new task
+// POST a new task
 router.post('/', async (req, res) => {
+  const { text } = req.body;
+  if (!text) {
+    return res.status(400).json({ message: 'Task text is required' });
+  }
+
+  const task = new Task({
+    text: text,
+  });
+
   try {
-    const newTask = new Task({
-      text: req.body.text,
-      dueDate: req.body.dueDate,
-    });
-    const savedTask = await newTask.save();
-    res.status(201).json(savedTask);
+    const newTask = await task.save();
+    res.status(201).json(newTask);
   } catch (err) {
-    res.status(500).json(err);
+    res.status(400).json({ message: err.message });
   }
 });
 
-// Update a task
-router.put('/:id', async (req, res) => {
+// PATCH to update a task (e.g., toggle completed status)
+router.patch('/:id', async (req, res) => {
   try {
-    const updatedTask = await Task.findByIdAndUpdate(
-      req.params.id,
-      { $set: req.body },
-      { new: true }
-    );
-    res.status(200).json(updatedTask);
+    const task = await Task.findById(req.params.id);
+    if (!task) {
+      return res.status(404).json({ message: 'Task not found' });
+    }
+
+    if (req.body.completed !== undefined) {
+      task.completed = req.body.completed;
+    }
+
+    const updatedTask = await task.save();
+    res.json(updatedTask);
   } catch (err) {
-    res.status(500).json(err);
+    res.status(400).json({ message: err.message });
   }
 });
 
-// Delete a task
+// DELETE a task
 router.delete('/:id', async (req, res) => {
   try {
-    await Task.findByIdAndDelete(req.params.id);
-    res.status(200).json('Task has been deleted...');
+    const task = await Task.findByIdAndDelete(req.params.id);
+    if (!task) {
+      return res.status(404).json({ message: 'Task not found' });
+    }
+    res.json({ message: 'Task deleted successfully' });
   } catch (err) {
-    res.status(500).json(err);
+    res.status(500).json({ message: err.message });
   }
 });
 
