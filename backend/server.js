@@ -40,7 +40,8 @@ app.post('/api/tasks', async (req, res) => {
   try {
     const { text, dueDate } = req.body;
     
-    // Explicitly set the date using UTC to avoid timezone issues
+    // Explicitly set the date using UTC to avoid timezone issues.
+    // This is the key fix for the one-day offset.
     const dateToSave = dueDate ? new Date(dueDate + 'T00:00:00Z') : null;
     
     const newTask = new Task({
@@ -54,6 +55,7 @@ app.post('/api/tasks', async (req, res) => {
     console.error("Error adding task:", error);
     res.status(500).json({ message: "Error adding task", error: error.message });
   }
+  
 });
 
 app.patch('/api/tasks/:id', async (req, res) => {
