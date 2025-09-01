@@ -20,7 +20,7 @@ mongoose.connect(MONGO_URI)
 const taskSchema = new mongoose.Schema({
   text: { type: String, required: true },
   completed: { type: Boolean, default: false },
-  dueDate: { type: Date, default: null }
+  dueDate: { type: String, default: null } // Storing as a string to avoid timezone issues
 });
 
 const Task = mongoose.model('Task', taskSchema);
@@ -40,12 +40,10 @@ app.post('/api/tasks', async (req, res) => {
   try {
     const { text, dueDate } = req.body;
     
-    // Explicitly create a new Date object from the ISO string to handle timezones
-    const dateToSave = dueDate ? new Date(dueDate) : null;
-    
+    // Save the date as a plain string to avoid timezone issues
     const newTask = new Task({
       text,
-      dueDate: dateToSave,
+      dueDate: dueDate,
     });
     
     const savedTask = await newTask.save();
