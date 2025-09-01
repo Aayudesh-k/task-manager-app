@@ -84,7 +84,7 @@ const App = () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ text: newTask, dueDate: newDueDate || null }),
+        body: JSON.stringify({ text: newTask, dueDate: newDueDate ? new Date(newDueDate).toISOString() : null }),
       });
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
