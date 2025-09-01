@@ -8,6 +8,12 @@ const App = () => {
   const [newDueDate, setNewDueDate] = useState('');
   const [isLoading, setIsLoading] = useState(true);
 
+  // Helper function to get a date at midnight in the local timezone
+  const getLocalDate = (date) => {
+    const d = new Date(date);
+    return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  };
+
   const getTaskStatus = (dueDate, completed) => {
     if (completed) {
       return 'Done';
@@ -16,10 +22,8 @@ const App = () => {
       return 'No Due Date';
     }
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const taskDate = new Date(dueDate);
-    taskDate.setHours(0, 0, 0, 0);
+    const today = getLocalDate(new Date());
+    const taskDate = getLocalDate(dueDate);
 
     if (taskDate < today) {
       return 'Overdue';
@@ -33,23 +37,22 @@ const App = () => {
   const getStatusColor = (status) => {
     switch (status) {
       case 'Overdue':
-        return 'bg-red-500';
+        return 'bg-red-500 text-white';
       case 'Due Today':
-        return 'bg-blue-500';
+        return 'bg-blue-500 text-white';
       case 'Upcoming':
-        return 'bg-yellow-500';
+        return 'bg-yellow-500 text-gray-800';
       case 'Done':
-        return 'bg-green-500';
+        return 'bg-green-500 text-white';
       default:
-        return 'bg-gray-500';
+        return 'bg-gray-300 text-gray-800';
     }
   };
 
   const formatDate = (dateString) => {
-    if (!dateString) return '';
+    if (!dateString) return 'N/A';
     const date = new Date(dateString);
-    date.setDate(date.getDate() + 1); // Add a day to correct for timezone offset
-    return date.toLocaleDateString('en-US', { year: 'numeric', month: 'numeric', day: 'numeric' });
+    return date.toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' });
   };
 
   useEffect(() => {
@@ -72,7 +75,7 @@ const App = () => {
 
   const handleAddTask = async () => {
     if (newTask.trim() === '') {
-      alert('Please enter a task.');
+      console.error('Task text is required.');
       return;
     }
     try {
@@ -129,79 +132,87 @@ const App = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white flex flex-col items-center p-4 font-sans">
-      <div className="bg-gray-800 p-8 rounded-xl shadow-2xl w-full max-w-4xl mt-10">
-        <h1 className="text-4xl font-extrabold text-center mb-6 text-gray-100">Task Manager</h1>
-        
-        <div className="flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-4 mb-6">
+    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4 sm:p-6">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-4xl p-6 sm:p-8">
+        <h1 className="text-4xl sm:text-5xl font-extrabold text-center text-gray-800 mb-6">Task Manager</h1>
+
+        <div className="flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-4 mb-8">
           <input
             type="text"
-            className="flex-grow p-3 rounded-lg bg-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all duration-200 w-full"
+            className="flex-grow w-full p-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200 text-gray-800 placeholder-gray-400"
             placeholder="Enter a new task..."
             value={newTask}
             onChange={(e) => setNewTask(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') handleAddTask();
-            }}
+            onKeyDown={(e) => e.key === 'Enter' && handleAddTask()}
           />
           <input
             type="date"
-            className="p-3 rounded-lg bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all duration-200"
+            className="w-full sm:w-auto p-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200 text-gray-800"
             value={newDueDate}
             onChange={(e) => setNewDueDate(e.target.value)}
           />
           <button
             onClick={handleAddTask}
-            className={`p-3 rounded-lg font-bold text-white transition-all duration-300 transform w-full md:w-auto ${newTask.trim() === '' ? 'bg-gray-600 cursor-not-allowed' : 'bg-emerald-600 hover:bg-emerald-500 active:scale-95'}`}
+            className={`w-full sm:w-auto p-3 rounded-xl text-white font-bold transition duration-200 transform ${
+              newTask.trim() === ''
+                ? 'bg-gray-400 cursor-not-allowed'
+                : 'bg-blue-600 hover:bg-blue-700 active:scale-95'
+            }`}
             disabled={newTask.trim() === ''}
           >
             Add Task
           </button>
         </div>
-        
+
         {isLoading && (
-          <div className="text-center text-gray-400">Loading tasks...</div>
+          <div className="text-center text-gray-500 py-8">Loading tasks...</div>
         )}
 
         {!isLoading && (
-          <div className="bg-gray-700 rounded-lg shadow-md overflow-hidden">
-            <div className="p-4 grid grid-cols-4 gap-4 text-gray-400 font-bold uppercase border-b-2 border-gray-600">
+          <div className="bg-gray-50 rounded-xl overflow-hidden shadow-inner">
+            <div className="p-4 bg-gray-200 rounded-t-xl grid grid-cols-4 gap-4 text-gray-600 font-bold uppercase text-sm border-b border-gray-300">
               <span>Task</span>
               <span>Due Date</span>
               <span>Status</span>
               <span>Actions</span>
             </div>
             {tasks.length === 0 ? (
-              <p className="p-4 text-center text-gray-400">No tasks found.</p>
+              <p className="p-4 text-center text-gray-500 italic">No tasks found. Start by adding one above!</p>
             ) : (
-              tasks.map((task) => (
-                <div 
-                  key={task._id} 
-                  className="p-4 grid grid-cols-4 gap-4 items-center border-b border-gray-600 last:border-b-0"
+              tasks.map((task, index) => (
+                <div
+                  key={task._id}
+                  className={`p-4 grid grid-cols-4 gap-4 items-center border-b border-gray-200 last:border-b-0 ${
+                    task.completed ? 'bg-gray-100' : 'bg-white'
+                  }`}
                 >
-                  <div className="flex items-center">
-                    <input 
-                      type="checkbox" 
+                  <div className="flex items-center space-x-3">
+                    <input
+                      type="checkbox"
                       checked={task.completed}
                       onChange={() => handleToggleTask(task._id, task.completed)}
-                      className="form-checkbox h-5 w-5 text-emerald-600 bg-gray-700 border-gray-600 rounded cursor-pointer"
+                      className="form-checkbox h-5 w-5 text-green-500 rounded-full border-gray-300 cursor-pointer focus:ring-green-500"
                     />
-                    <span className={`ml-3 transition-colors duration-200 ${task.completed ? 'text-gray-500 line-through' : 'text-gray-100'}`}>
+                    <span className={`text-gray-800 ${task.completed ? 'line-through text-gray-500' : ''}`}>
                       {task.text}
                     </span>
                   </div>
-                  <span className="text-gray-300">{formatDate(task.dueDate)}</span>
+                  <span className="text-gray-600 text-sm">{formatDate(task.dueDate)}</span>
                   <div>
-                    <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${getStatusColor(getTaskStatus(task.dueDate, task.completed))}`}>
+                    <span className={`px-3 py-1 text-xs font-semibold rounded-full ${getStatusColor(getTaskStatus(task.dueDate, task.completed))}`}>
                       {getTaskStatus(task.dueDate, task.completed).toUpperCase()}
                     </span>
                   </div>
-                  <button
-                    onClick={() => handleDeleteTask(task._id)}
-                    className="p-2 rounded-full text-gray-400 hover:text-red-500 transition-all duration-200 self-center justify-self-center"
-                  >
-                    <span className="text-xl">🗑️</span>
-                  </button>
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={() => handleDeleteTask(task._id)}
+                      className="p-2 text-red-500 hover:bg-red-100 rounded-full transition-colors duration-200"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm6 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clipRule="evenodd" />
+                      </svg>
+                    </button>
+                  </div>
                 </div>
               ))
             )}
