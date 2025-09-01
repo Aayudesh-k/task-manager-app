@@ -172,7 +172,7 @@ body {
   padding: 4px 8px;
   border-radius: 5px;
   text-align: center;
-  min-width: 80px;
+  min-width: 90px;
 }
 
 .status.due-today {
