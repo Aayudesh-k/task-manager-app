@@ -60,7 +60,15 @@ app.post('/api/tasks', async (req, res) => {
     if (!text) {
       return res.status(400).json({ message: 'Task text is required' });
     }
-    const newTask = new Task({ text, dueDate });
+
+    // Correctly handle the due date to avoid timezone issues
+    let taskDueDate = null;
+    if (dueDate) {
+      const [year, month, day] = dueDate.split('-').map(Number);
+      taskDueDate = new Date(year, month - 1, day);
+    }
+    
+    const newTask = new Task({ text, dueDate: taskDueDate });
     await newTask.save();
     res.status(201).json(newTask);
   } catch (error) {

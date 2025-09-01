@@ -8,63 +8,50 @@ const App = () => {
   const [newDueDate, setNewDueDate] = useState('');
   const [isLoading, setIsLoading] = useState(true);
 
-  // Helper function to format date
-  const formatDate = (dateString) => {
-    if (!dateString) return 'No due date';
-    const date = new Date(dateString);
-    const today = new Date();
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
+  const getTaskStatus = (dueDate, completed) => {
+    if (completed) {
+      return 'Done';
+    }
+    if (!dueDate) {
+      return 'No Due Date';
+    }
 
-    if (date.toDateString() === today.toDateString()) {
-      return 'Today';
-    } else if (date.toDateString() === tomorrow.toDateString()) {
-      return 'Tomorrow';
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const taskDate = new Date(dueDate);
+    taskDate.setHours(0, 0, 0, 0);
+
+    if (taskDate < today) {
+      return 'Overdue';
+    } else if (taskDate.getTime() === today.getTime()) {
+      return 'Due Today';
     } else {
-      return date.toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric',
-      });
+      return 'Upcoming';
     }
   };
 
-  const isOverdue = (dateString, completed) => {
-    if (completed || !dateString) return false;
-    const today = new Date();
-    today.setHours(0, 0, 0, 0); // Normalize to start of day
-    return new Date(dateString) < today;
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'Overdue':
+        return 'bg-red-500';
+      case 'Due Today':
+        return 'bg-blue-500';
+      case 'Upcoming':
+        return 'bg-yellow-500';
+      case 'Done':
+        return 'bg-green-500';
+      default:
+        return 'bg-gray-500';
+    }
   };
 
-  const categorizeTasks = (allTasks) => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    
-    const categories = {
-      overdue: [],
-      dueToday: [],
-      upcoming: [],
-      done: [],
-    };
-
-    allTasks.forEach(task => {
-      if (task.completed) {
-        categories.done.push(task);
-      } else if (isOverdue(task.dueDate, task.completed)) {
-        categories.overdue.push(task);
-      } else if (new Date(task.dueDate).toDateString() === today.toDateString()) {
-        categories.dueToday.push(task);
-      } else {
-        categories.upcoming.push(task);
-      }
-    });
-
-    return categories;
+  const formatDate = (dateString) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    date.setDate(date.getDate() + 1); // Add a day to correct for timezone offset
+    return date.toLocaleDateString('en-US', { year: 'numeric', month: 'numeric', day: 'numeric' });
   };
 
-  const categorizedTasks = categorizeTasks(tasks);
-
-  // Fetch all tasks from the backend
   useEffect(() => {
     const fetchTasks = async () => {
       try {
@@ -83,7 +70,6 @@ const App = () => {
     fetchTasks();
   }, []);
 
-  // Add a new task
   const handleAddTask = async () => {
     if (newTask.trim() === '') {
       alert('Please enter a task.');
@@ -95,7 +81,7 @@ const App = () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ text: newTask, dueDate: newDueDate }),
+        body: JSON.stringify({ text: newTask, dueDate: newDueDate || null }),
       });
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -109,7 +95,6 @@ const App = () => {
     }
   };
 
-  // Toggle a task's completion status
   const handleToggleTask = async (id, completed) => {
     try {
       const response = await fetch(`${API_BASE_URL}/${id}`, {
@@ -129,7 +114,6 @@ const App = () => {
     }
   };
 
-  // Delete a task
   const handleDeleteTask = async (id) => {
     try {
       const response = await fetch(`${API_BASE_URL}/${id}`, {
@@ -143,51 +127,12 @@ const App = () => {
       console.error("Error deleting task:", error);
     }
   };
-  
-  const renderTaskSection = (title, taskList, colorClass) => (
-    <div className="space-y-4">
-      <h2 className={`text-xl font-bold border-b-2 pb-2 ${colorClass}`}>{title}</h2>
-      <ul className="space-y-2">
-        {taskList.length === 0 ? (
-          <p className="text-gray-400">No tasks in this category.</p>
-        ) : (
-          taskList.map((task) => (
-            <li key={task._id} className="bg-gray-700 p-4 rounded-lg shadow-md flex items-center justify-between transition-all duration-200">
-              <div 
-                className="flex items-center flex-grow cursor-pointer"
-                onClick={() => handleToggleTask(task._id, task.completed)}
-              >
-                <span className={`text-2xl mr-3`}>
-                  {task.completed ? '✅' : '⬜'}
-                </span>
-                <div className="flex flex-col">
-                  <span className={`text-lg transition-colors duration-200 ${task.completed ? 'text-gray-500 line-through' : 'text-gray-100'}`}>
-                    {task.text}
-                  </span>
-                  <span className={`text-sm mt-1 font-semibold ${isOverdue(task.dueDate, task.completed) ? 'text-red-400' : 'text-gray-400'}`}>
-                    {formatDate(task.dueDate)}
-                  </span>
-                </div>
-              </div>
-              <button
-                onClick={() => handleDeleteTask(task._id)}
-                className="p-2 rounded-full text-gray-400 hover:text-red-500 transition-all duration-200"
-              >
-                <span className="text-xl">🗑️</span>
-              </button>
-            </li>
-          ))
-        )}
-      </ul>
-    </div>
-  );
 
   return (
     <div className="min-h-screen bg-gray-900 text-white flex flex-col items-center p-4 font-sans">
-      <div className="bg-gray-800 p-8 rounded-xl shadow-2xl w-full max-w-lg mt-10">
+      <div className="bg-gray-800 p-8 rounded-xl shadow-2xl w-full max-w-4xl mt-10">
         <h1 className="text-4xl font-extrabold text-center mb-6 text-gray-100">Task Manager</h1>
         
-        {/* Input and Add Button */}
         <div className="flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-4 mb-6">
           <input
             type="text"
@@ -214,18 +159,52 @@ const App = () => {
           </button>
         </div>
         
-        {/* Loading State */}
         {isLoading && (
           <div className="text-center text-gray-400">Loading tasks...</div>
         )}
 
-        {/* Task Categories */}
         {!isLoading && (
-          <div className="space-y-8">
-            {renderTaskSection('Overdue', categorizedTasks.overdue, 'text-red-500')}
-            {renderTaskSection('Due Today', categorizedTasks.dueToday, 'text-blue-500')}
-            {renderTaskSection('Upcoming', categorizedTasks.upcoming, 'text-yellow-500')}
-            {renderTaskSection('Done', categorizedTasks.done, 'text-green-500')}
+          <div className="bg-gray-700 rounded-lg shadow-md overflow-hidden">
+            <div className="p-4 grid grid-cols-4 gap-4 text-gray-400 font-bold uppercase border-b-2 border-gray-600">
+              <span>Task</span>
+              <span>Due Date</span>
+              <span>Status</span>
+              <span>Actions</span>
+            </div>
+            {tasks.length === 0 ? (
+              <p className="p-4 text-center text-gray-400">No tasks found.</p>
+            ) : (
+              tasks.map((task) => (
+                <div 
+                  key={task._id} 
+                  className="p-4 grid grid-cols-4 gap-4 items-center border-b border-gray-600 last:border-b-0"
+                >
+                  <div className="flex items-center">
+                    <input 
+                      type="checkbox" 
+                      checked={task.completed}
+                      onChange={() => handleToggleTask(task._id, task.completed)}
+                      className="form-checkbox h-5 w-5 text-emerald-600 bg-gray-700 border-gray-600 rounded cursor-pointer"
+                    />
+                    <span className={`ml-3 transition-colors duration-200 ${task.completed ? 'text-gray-500 line-through' : 'text-gray-100'}`}>
+                      {task.text}
+                    </span>
+                  </div>
+                  <span className="text-gray-300">{formatDate(task.dueDate)}</span>
+                  <div>
+                    <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${getStatusColor(getTaskStatus(task.dueDate, task.completed))}`}>
+                      {getTaskStatus(task.dueDate, task.completed).toUpperCase()}
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => handleDeleteTask(task._id)}
+                    className="p-2 rounded-full text-gray-400 hover:text-red-500 transition-all duration-200 self-center justify-self-center"
+                  >
+                    <span className="text-xl">🗑️</span>
+                  </button>
+                </div>
+              ))
+            )}
           </div>
         )}
       </div>
