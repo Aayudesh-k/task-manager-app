@@ -18,8 +18,8 @@ const corsOptions = {
 app.use(cors(corsOptions));
 
 // MongoDB Connection
-// Replace this with your actual MongoDB URI from MongoDB Atlas
-const MONGO_URI = 'mongodb+srv://test:testtest@cluster0.p7102y2.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0';
+// Replace 'YOUR_PASSWORD_HERE' with your actual new password
+const MONGO_URI = 'mongodb+srv://a2kaparthi:mynewpassword123@social-media-app.2kuevih.mongodb.net/?retryWrites=true&w=majority&appName=social-media-app';
 
 mongoose.connect(MONGO_URI)
   .then(() => console.log('MongoDB connected successfully'))
