@@ -43,6 +43,7 @@ app.post('/api/tasks', async (req, res) => {
     const { text, dueDate } = req.body;
     const newTask = new Task({
       text,
+      // Create a Date object from the provided ISO string, which handles timezones correctly
       dueDate: dueDate ? new Date(dueDate) : null,
     });
     const savedTask = await newTask.save();
