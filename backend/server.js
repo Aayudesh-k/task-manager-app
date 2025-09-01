@@ -1,79 +1,49 @@
-const express = require('express');
-const mongoose = require('mongoose');
-const cors = require('cors');
+import express from 'express';
+import mongoose from 'mongoose';
+import cors from 'cors';
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 5000;
 
-// Middleware
+app.use(cors());
 app.use(express.json());
 
-// Set up CORS to be permissive for development
-const corsOptions = {
-  origin: '*',
-  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-  preflightContinue: false,
-  optionsSuccessStatus: 204,
-};
-app.use(cors(corsOptions));
-
-// MongoDB Connection
-// Replace 'YOUR_PASSWORD_HERE' with your actual new password
-const MONGO_URI = 'mongodb+srv://a2kaparthi:mynewpassword123@social-media-app.2kuevih.mongodb.net/?retryWrites=true&w=majority&appName=social-media-app';
+// Replace with your actual MongoDB connection string
+const MONGO_URI = 'mongodb+srv://a2kaparthi:A%40udesh123@social-media-app.2kuevih.mongodb.net/tasks_db?retryWrites=true&w=majority';
 
 mongoose.connect(MONGO_URI)
   .then(() => console.log('MongoDB connected successfully'))
   .catch(err => console.error('MongoDB connection error:', err));
 
-// Define the Task Schema with dueDate
 const taskSchema = new mongoose.Schema({
-  text: {
-    type: String,
-    required: true,
-  },
-  completed: {
-    type: Boolean,
-    default: false,
-  },
-  dueDate: {
-    type: Date,
-    required: false, // Make it optional
-  },
+  text: { type: String, required: true },
+  completed: { type: Boolean, default: false },
+  dueDate: { type: Date, default: null }
 });
 
 const Task = mongoose.model('Task', taskSchema);
 
-// API Routes
+// API Endpoints
 app.get('/api/tasks', async (req, res) => {
   try {
     const tasks = await Task.find();
     res.status(200).json(tasks);
   } catch (error) {
-    console.error('Error fetching tasks:', error);
-    res.status(500).json({ message: 'Internal Server Error' });
+    res.status(500).json({ message: "Could not fetch tasks", error: error.message });
   }
 });
 
 app.post('/api/tasks', async (req, res) => {
   try {
     const { text, dueDate } = req.body;
-    if (!text) {
-      return res.status(400).json({ message: 'Task text is required' });
-    }
-
-    // Correctly handle the due date to avoid timezone issues
-    let taskDueDate = null;
-    if (dueDate) {
-      const [year, month, day] = dueDate.split('-').map(Number);
-      taskDueDate = new Date(year, month - 1, day);
-    }
-    
-    const newTask = new Task({ text, dueDate: taskDueDate });
-    await newTask.save();
-    res.status(201).json(newTask);
+    const newTask = new Task({
+      text,
+      dueDate: dueDate ? new Date(dueDate) : null,
+    });
+    const savedTask = await newTask.save();
+    res.status(201).json(savedTask);
   } catch (error) {
-    console.error('Error adding task:', error);
-    res.status(500).json({ message: 'Internal Server Error' });
+    res.status(500).json({ message: "Error adding task", error: error.message });
   }
 });
 
@@ -86,30 +56,22 @@ app.patch('/api/tasks/:id', async (req, res) => {
       { completed },
       { new: true }
     );
-    if (!updatedTask) {
-      return res.status(404).json({ message: 'Task not found' });
-    }
     res.status(200).json(updatedTask);
   } catch (error) {
-    console.error('Error updating task:', error);
-    res.status(500).json({ message: 'Internal Server Error' });
+    res.status(500).json({ message: "Error updating task", error: error.message });
   }
 });
 
 app.delete('/api/tasks/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const deletedTask = await Task.findByIdAndDelete(id);
-    if (!deletedTask) {
-      return res.status(404).json({ message: 'Task not found' });
-    }
-    res.status(200).json({ message: 'Task deleted' });
+    await Task.findByIdAndDelete(id);
+    res.status(200).json({ message: "Task deleted successfully" });
   } catch (error) {
-    console.error('Error deleting task:', error);
-    res.status(500).json({ message: 'Internal Server Error' });
+    res.status(500).json({ message: "Error deleting task", error: error.message });
   }
 });
 
 app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+  console.log(`Server is running on http://localhost:${PORT}`);
 });
