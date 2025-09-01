@@ -12,8 +12,9 @@ const MONGO_URI = process.env.MONGO_URI;
 const tasksRoute = require('./routes/tasks');
 
 // Configure CORS to allow requests from your Vercel frontend
+// The origin URL must exactly match the URL where your frontend is deployed.
 const corsOptions = {
-  origin: 'https://task-manager-k1ujhgn2q-aayudesh-kaparthis-projects.vercel.app',
+  origin: 'https://task-manager-app-alpha-seven.vercel.app',
   optionsSuccessStatus: 200 // Some legacy browsers (IE11, various SmartTVs) choke on 204
 };
 app.use(cors(corsOptions));
