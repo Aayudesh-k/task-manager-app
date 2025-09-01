@@ -1,0 +1,225 @@
+@import url('[https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap](https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap)');
+
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: #eef2f5;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: 100vh;
+  margin: 0;
+  padding-top: 50px;
+  color: #333;
+}
+
+.container {
+  background: #fff;
+  padding: 2.5rem;
+  border-radius: 12px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+  width: 90%;
+  max-width: 800px;
+}
+
+.header {
+  text-align: center;
+  color: #1a202c;
+  margin-bottom: 2rem;
+  font-weight: 700;
+}
+
+.add-task-form {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 2.5rem;
+}
+
+.task-input,
+.date-input {
+  flex: 1;
+  padding: 12px 18px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.task-input:focus,
+.date-input:focus {
+  outline: none;
+  border-color: #4299e1;
+  box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.5);
+}
+
+.add-button {
+  background-color: #4299e1;
+  color: white;
+  border: none;
+  padding: 12px 25px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 500;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  box-shadow: 0 4px 10px rgba(66, 153, 225, 0.2);
+}
+
+.add-button:hover {
+  background-color: #3182ce;
+  transform: translateY(-2px);
+}
+
+.task-table-container {
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.task-table-header {
+  display: flex;
+  background-color: #f7fafc;
+  padding: 18px 20px;
+  font-weight: 700;
+  border-bottom: 1px solid #e2e8f0;
+  color: #4a5568;
+}
+
+.header-cell {
+  flex: 1;
+  text-align: left;
+}
+
+.header-cell:last-child {
+  text-align: right;
+}
+
+.task-row {
+  display: flex;
+  align-items: center;
+  padding: 18px 20px;
+  border-bottom: 1px solid #edf2f7;
+  transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+  background-color: #fff;
+}
+
+.task-row:last-child {
+  border-bottom: none;
+}
+
+.task-row:hover {
+  background-color: #f9fafb;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+}
+
+.task-row.completed {
+  background-color: #e6fffa;
+  color: #718096;
+}
+
+.task-row.completed .task-text span {
+  text-decoration: line-through;
+}
+
+.task-cell {
+  flex: 1;
+}
+
+.task-cell.task-text {
+  display: flex;
+  align-items: center;
+  color: #333; /* Ensuring the task text is black */
+}
+
+.task-checkbox {
+  margin-right: 15px;
+  cursor: pointer;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border: 2px solid #cbd5e0;
+  border-radius: 4px;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+  position: relative;
+}
+
+.task-checkbox:checked {
+  background-color: #48bb78;
+  border-color: #48bb78;
+}
+
+.task-checkbox:checked::after {
+  content: '✓';
+  font-size: 14px;
+  color: white;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.task-cell.due-date {
+  font-size: 0.9rem;
+  color: #718096;
+}
+
+.task-cell.status {
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  padding: 4px 8px;
+  border-radius: 5px;
+  text-align: center;
+  min-width: 80px;
+}
+
+.status.due-today {
+  background-color: #fffaf0;
+  color: #dd6b20;
+}
+
+.status.overdue {
+  background-color: #fff5f5;
+  color: #e53e3e;
+}
+
+.status.upcoming {
+  background-color: #f0fff4;
+  color: #38a169;
+}
+
+.status.done {
+  background-color: #e2e8f0;
+  color: #718096;
+}
+
+.task-cell.actions {
+  text-align: right;
+}
+
+.delete-button {
+  background-color: #e53e3e;
+  color: white;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  box-shadow: 0 2px 5px rgba(229, 62, 62, 0.2);
+}
+
+.delete-button:hover {
+  background-color: #c53030;
+  transform: translateY(-1px);
+}
+
+.no-tasks-message {
+  text-align: center;
+  color: #718096;
+  font-style: italic;
+  margin-top: 2rem;
+}
