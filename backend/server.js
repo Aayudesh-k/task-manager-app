@@ -25,7 +25,7 @@ mongoose.connect(MONGO_URI)
   .then(() => console.log('MongoDB connected successfully'))
   .catch(err => console.error('MongoDB connection error:', err));
 
-// Define the Task Schema
+// Define the Task Schema with dueDate
 const taskSchema = new mongoose.Schema({
   text: {
     type: String,
@@ -34,6 +34,10 @@ const taskSchema = new mongoose.Schema({
   completed: {
     type: Boolean,
     default: false,
+  },
+  dueDate: {
+    type: Date,
+    required: false, // Make it optional
   },
 });
 
@@ -52,11 +56,11 @@ app.get('/api/tasks', async (req, res) => {
 
 app.post('/api/tasks', async (req, res) => {
   try {
-    const { text } = req.body;
+    const { text, dueDate } = req.body;
     if (!text) {
       return res.status(400).json({ message: 'Task text is required' });
     }
-    const newTask = new Task({ text });
+    const newTask = new Task({ text, dueDate });
     await newTask.save();
     res.status(201).json(newTask);
   } catch (error) {
