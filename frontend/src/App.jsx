@@ -1,167 +1,154 @@
-import { useState, useEffect } from 'react';
-import './App.css';
+import React, { useState, useEffect } from 'react';
 
-function App() {
+const App = () => {
   const [tasks, setTasks] = useState([]);
-  const [taskText, setTaskText] = useState('');
-  const [taskDueDate, setTaskDueDate] = useState('');
+  const [newTask, setNewTask] = useState('');
 
-  // Fetch tasks on component mount
+  const API_URL = 'https://task-manager-app-c1l3.onrender.com/api/tasks';
+
+  // Fetch tasks from the backend
+  const fetchTasks = async () => {
+    try {
+      const response = await fetch(API_URL);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      setTasks(data);
+    } catch (error) {
+      console.error("Could not fetch tasks:", error);
+    }
+  };
+
+  // Add a new task
+  const handleAddTask = async (e) => {
+    e.preventDefault();
+    if (newTask.trim() === '') return;
+
+    try {
+      const response = await fetch(API_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ text: newTask }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const addedTask = await response.json();
+      setTasks([...tasks, addedTask]);
+      setNewTask('');
+    } catch (error) {
+      console.error("Error adding task:", error);
+    }
+  };
+
+  // Delete a task
+  const handleDeleteTask = async (id) => {
+    try {
+      const response = await fetch(`${API_URL}/${id}`, {
+        method: 'DELETE',
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      setTasks(tasks.filter(task => task._id !== id));
+    } catch (error) {
+      console.error("Error deleting task:", error);
+    }
+  };
+
+  // Toggle a task's completion status
+  const handleToggleComplete = async (id, isCompleted) => {
+    try {
+      const response = await fetch(`${API_URL}/${id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ completed: !isCompleted }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const updatedTask = await response.json();
+      setTasks(tasks.map(task => task._id === id ? updatedTask : task));
+    } catch (error) {
+      console.error("Error toggling task completion:", error);
+    }
+  };
+
   useEffect(() => {
     fetchTasks();
   }, []);
 
-  const fetchTasks = async () => {
-    try {
-      const response = await fetch('https://task-manager-app-c1l3.onrender.com');
-      if (!response.ok) throw new Error('Network response was not ok');
-      const data = await response.json();
-      setTasks(data);
-    } catch (error) {
-      console.error('Failed to fetch tasks:', error);
-    }
-  };
-
-  const handleAddTask = async (e) => {
-    e.preventDefault();
-    if (!taskText) return;
-
-    // Fix for the date bug:
-    // When the user selects a date, browsers provide a string like 'YYYY-MM-DD'.
-    // JavaScript's new Date() interprets this in the local timezone's offset,
-    // which can lead to it being saved as the previous day in UTC.
-    // To fix this, we will manually create a new date object that preserves
-    // the selected date without any timezone shifting.
-    let correctedDueDate = null;
-    if (taskDueDate) {
-      const [year, month, day] = taskDueDate.split('-');
-      correctedDueDate = new Date(year, month - 1, day);
-    }
-
-    try {
-      await fetch('https://task-manager-app-c1l3.onrender.com', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: taskText, dueDate: correctedDueDate }),
-      });
-      setTaskText('');
-      setTaskDueDate('');
-      fetchTasks(); // Refresh the list of tasks
-    } catch (error) {
-      console.error('Failed to add task:', error);
-    }
-  };
-
-  const handleDeleteTask = async (id) => {
-    try {
-      await fetch(`https://task-manager-app-c1l3.onrender.com${id}`, { method: 'DELETE' });
-      fetchTasks(); // Refresh the list of tasks
-    } catch (error) {
-      console.error('Failed to delete task:', error);
-    }
-  };
-
-  const handleToggleComplete = async (task) => {
-    try {
-      await fetch(`https://task-manager-app-c1l3.onrender.com${task._id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ completed: !task.completed }),
-      });
-      fetchTasks(); // Refresh the list of tasks
-    } catch (error) {
-      console.error('Failed to update task:', error);
-    }
-  };
-
-  const getStatus = (dueDate, completed) => {
-    if (completed) {
-      return 'Done';
-    }
-    if (!dueDate) {
-      return 'No due date';
-    }
-
-    const now = new Date();
-    const due = new Date(dueDate);
-
-    // Normalize dates to compare only the day
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const dueDay = new Date(due.getFullYear(), due.getMonth(), due.getDate());
-
-    if (dueDay.getTime() === today.getTime()) {
-      return 'Due Today';
-    } else if (dueDay < today) {
-      return 'Overdue';
-    } else {
-      return 'Upcoming';
-    }
-  };
-
-  const formatDate = (dateString) => {
-    if (!dateString) return 'No due date';
-    const date = new Date(dateString);
-    return date.toLocaleDateString();
-  };
-
   return (
-    <div className="container">
-      <header className="header">
-        <h1>Task Manager</h1>
-      </header>
-      <form onSubmit={handleAddTask} className="add-task-form">
-        <input
-          type="text"
-          placeholder="Task description..."
-          value={taskText}
-          onChange={(e) => setTaskText(e.target.value)}
-          className="task-input"
-        />
-        <input
-          type="date"
-          value={taskDueDate.split('T')[0]}
-          onChange={(e) => setTaskDueDate(e.target.value)}
-          className="date-input"
-        />
-        <button type="submit" className="add-button">Add Task</button>
-      </form>
-      <div className="task-list">
-        {tasks.length > 0 ? (
-          <div className="task-table-container">
-            <div className="task-table-header">
-              <div className="header-cell">Task</div>
-              <div className="header-cell">Due Date</div>
-              <div className="header-cell">Status</div>
-              <div className="header-cell">Actions</div>
-            </div>
-            {tasks.map((task) => (
-              <div key={task._id} className={`task-row ${task.completed ? 'completed' : ''}`}>
-                <div className="task-cell task-text">
+    <div className="min-h-screen bg-gray-100 p-8 flex flex-col items-center">
+      <div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-2xl">
+        <h1 className="text-4xl font-extrabold text-center text-gray-800 mb-6">Task Manager</h1>
+
+        {/* Task Input Form */}
+        <form onSubmit={handleAddTask} className="flex gap-4 mb-8">
+          <input
+            type="text"
+            value={newTask}
+            onChange={(e) => setNewTask(e.target.value)}
+            placeholder="Add a new task..."
+            className="flex-grow p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+          />
+          <button
+            type="submit"
+            className="bg-blue-600 text-white p-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors shadow-md"
+          >
+            Add Task
+          </button>
+        </form>
+
+        {/* Task List */}
+        <div className="space-y-4">
+          {tasks.length > 0 ? (
+            tasks.map(task => (
+              <div
+                key={task._id}
+                className={`flex items-center justify-between p-4 rounded-lg shadow transition-all ${task.completed ? 'bg-green-100' : 'bg-gray-50'}`}
+              >
+                <div className="flex items-center">
                   <input
                     type="checkbox"
                     checked={task.completed}
-                    onChange={() => handleToggleComplete(task)}
-                    className="task-checkbox"
+                    onChange={() => handleToggleComplete(task._id, task.completed)}
+                    className="form-checkbox h-5 w-5 text-blue-600 rounded-md focus:ring-blue-500"
                   />
-                  {/* The task name is displayed here next to the checkbox */}
-                  <span>{task.text}</span>
+                  <span
+                    className={`ml-4 text-lg font-medium ${task.completed ? 'line-through text-gray-500' : 'text-gray-800'}`}
+                  >
+                    {task.text}
+                  </span>
                 </div>
-                <div className="task-cell due-date">{formatDate(task.dueDate)}</div>
-                <div className={`task-cell status ${getStatus(task.dueDate, task.completed).toLowerCase().replace(' ', '-')}`}>
-                  {getStatus(task.dueDate, task.completed)}
-                </div>
-                <div className="task-cell actions">
-                  <button onClick={() => handleDeleteTask(task._id)} className="delete-button">Delete</button>
-                </div>
+                <button
+                  onClick={() => handleDeleteTask(task._id)}
+                  className="p-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path
+                      fillRule="evenodd"
+                      d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm6 0a1 1 0 11-2 0v6a1 1 0 112 0V8z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                </button>
               </div>
-            ))}
-          </div>
-        ) : (
-          <p className="no-tasks-message">No tasks to display.</p>
-        )}
+            ))
+          ) : (
+            <p className="text-center text-gray-500 text-lg">No tasks yet. Add one above!</p>
+          )}
+        </div>
       </div>
     </div>
   );
-}
+};
 
 export default App;
