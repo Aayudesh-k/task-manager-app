@@ -40,8 +40,7 @@ app.post('/api/tasks', async (req, res) => {
   try {
     const { text, dueDate } = req.body;
     
-    // Explicitly set the date using UTC to avoid timezone issues.
-    // This is the key fix for the one-day offset.
+    // Check if dueDate is a valid string before attempting to create a Date object
     const dateToSave = dueDate ? new Date(dueDate + 'T00:00:00Z') : null;
     
     const newTask = new Task({
