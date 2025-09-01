@@ -91,6 +91,10 @@ body {
   text-align: left;
 }
 
+.status-header {
+  text-align: center;
+}
+
 .header-cell:last-child {
   text-align: right;
 }
