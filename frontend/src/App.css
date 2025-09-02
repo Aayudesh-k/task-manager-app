@@ -171,7 +171,7 @@ body {
   font-size: 0.75rem;
   padding: 4px 8px;
   border-radius: 5px;
-  text-align: right;
+  text-align: center;
   min-width: 80px;
 }
 
@@ -196,7 +196,7 @@ body {
 }
 
 .task-cell.actions {
-  text-align: center;
+  text-align: left;
 }
 
 .delete-button {
