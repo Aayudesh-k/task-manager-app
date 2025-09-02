@@ -13,7 +13,7 @@ function App() {
 
   const fetchTasks = async () => {
     try {
-      const response = await fetch('https://task-manager-app-c1l3.onrender.com');
+      const response = await fetch('https://task-manager-app-c1l3.onrender.com/api/tasks');
       if (!response.ok) throw new Error('Network response was not ok');
       const data = await response.json();
       setTasks(data);
@@ -39,7 +39,7 @@ function App() {
     }
 
     try {
-      await fetch('https://task-manager-app-c1l3.onrender.com', {
+      await fetch('https://task-manager-app-c1l3.onrender.com/api/tasks', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text: taskText, dueDate: correctedDueDate }),
@@ -54,7 +54,7 @@ function App() {
 
   const handleDeleteTask = async (id) => {
     try {
-      await fetch(`https://task-manager-app-c1l3.onrender.com${id}`, { method: 'DELETE' });
+      await fetch(`https://task-manager-app-c1l3.onrender.com/api/tasks/${id}`, { method: 'DELETE' });
       fetchTasks(); // Refresh the list of tasks
     } catch (error) {
       console.error('Failed to delete task:', error);
@@ -63,7 +63,7 @@ function App() {
 
   const handleToggleComplete = async (task) => {
     try {
-      await fetch(`https://task-manager-app-c1l3.onrender.com${task._id}`, {
+      await fetch(`https://task-manager-app-c1l3.onrender.com/api/tasks/${task._id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ completed: !task.completed }),

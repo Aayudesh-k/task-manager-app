@@ -1,5 +1,5 @@
 const router = require('express').Router();
-const Task = require('../models/task');
+const Task = require('../models/Task');
 
 // Get all tasks, sorted by due date
 router.get('/', async (req, res) => {
