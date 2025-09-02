@@ -112,7 +112,7 @@ function App() {
       <form onSubmit={handleAddTask} className="add-task-form">
         <input
           type="text"
-          placeholder="Task description..."
+          placeholder="Enter Task description..."
           value={taskText}
           onChange={(e) => setTaskText(e.target.value)}
           className="task-input"
