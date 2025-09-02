@@ -172,7 +172,7 @@ body {
   padding: 4px 8px;
   border-radius: 5px;
   text-align: center;
-  min-width: 90px;
+  min-width: 70px;
 }
 
 .status.due-today {
@@ -196,7 +196,7 @@ body {
 }
 
 .task-cell.actions {
-  text-align: right;
+  text-align: center;
 }
 
 .delete-button {
